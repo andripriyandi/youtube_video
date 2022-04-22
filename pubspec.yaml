@@ -34,6 +34,8 @@ dependencies:
     path: shared_libraries/core
   dependencies:
     path: shared_libraries/dependencies
+  network:
+    path: shared_libraries/network
 
 dev_dependencies:
   flutter_test:

@@ -8,44 +8,34 @@ import 'package:video/domain/usecases/get_video_usecase.dart';
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetVideoUseCase getVideoUseCase;
 
-  HomeBloc({
-    required this.getVideoUseCase,
-  }) : super(HomeState(statusYouTubeVideo: ViewData.initial()));
-
-  @override
-  Stream<HomeState> mapEventToState(HomeEvent event) async* {
-    if (event is SearchVideo) {
-      yield* _searchVideo(event.query);
-    }
+  HomeBloc({required this.getVideoUseCase})
+      : super(HomeState(statusYouTubeVideo: ViewData.initial())) {
+    on<SearchVideo>(_mapSearchEventToState);
   }
 
-  Stream<HomeState> _searchVideo(String query) async* {
-    yield state.copyWith(
-        statusYouTubeVideo: ViewData.loading(message: 'Loading'));
+  void _mapSearchEventToState(
+      SearchVideo event, Emitter<HomeState> emit) async {
+    emit(HomeState(statusYouTubeVideo: ViewData.loading(message: 'Loading')));
+    final response = await getVideoUseCase.call(event.query);
 
-    final response = await getVideoUseCase.call(query);
-
-    yield* response.fold(_onFailure, _onSuccess);
+    response.fold(
+      (l) => _onFailure(l, emit),
+      (r) => _onSuccess(r, emit),
+    );
   }
 
-  Stream<HomeState> _onFailure(FailureResponse failure) async* {
-    yield state.copyWith(
-        statusYouTubeVideo: ViewData.error(
-      message: failure.errorMessage,
-      failure: failure,
-    ));
-  }
-
-  Stream<HomeState> _onSuccess(
-    YouTubeVideoEntity? data,
-  ) async* {
+  void _onSuccess(YouTubeVideoEntity? data, Emitter<HomeState> emit) async {
     final videos = data?.items ?? [];
     if (videos.isEmpty) {
-      yield state.copyWith(
-        statusYouTubeVideo: ViewData.noData(message: 'No Data'),
-      );
+      emit(HomeState(statusYouTubeVideo: ViewData.noData(message: 'No Data')));
     } else {
-      yield state.copyWith(statusYouTubeVideo: ViewData.loaded(data: data));
+      emit(HomeState(statusYouTubeVideo: ViewData.loaded(data: data)));
     }
+  }
+
+  void _onFailure(FailureResponse failure, Emitter<HomeState> emit) async {
+    emit(HomeState(
+        statusYouTubeVideo:
+            ViewData.error(message: failure.errorMessage, failure: failure)));
   }
 }
