@@ -373,7 +373,7 @@ class GetDataApi {
             handleFailure: handleResponseStatus.handleFailure,
             onSuccess: serializer(nullSafety));
       }
-    } on Exception catch (e) {
+    } on Exception {
       return Tupple(
           handleFailure: HandleFailure(), onSuccess: serializer(nullSafety));
     }

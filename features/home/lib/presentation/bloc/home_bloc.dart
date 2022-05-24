@@ -24,7 +24,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     );
   }
 
-  void _onSuccess(YouTubeVideoEntity? data, Emitter<HomeState> emit) async {
+  void _onSuccess(data, Emitter<HomeState> emit) async {
     final videos = data?.items ?? [];
     if (videos.isEmpty) {
       emit(HomeState(statusYouTubeVideo: ViewData.noData(message: 'No Data')));
